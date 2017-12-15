@@ -29,5 +29,4 @@ module Schema
 			SELECT COUNT(*) FROM #{table}
 		SQL
 	end
-
 end

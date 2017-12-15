@@ -12,12 +12,12 @@ module Persistence
 
 	def save!
 		unless self.id
-			self.id = self.class.create(BlocRecord::Utility.instance_varialble_to_hash(seld)).id
+			self.id = self.class.create(BlocRecord::Utility.instance_variables_to_hash(self)).id
 			BlocRecord::Utility.reload_obj(self)
 			return true
 		end
 
-		fields = self.class.attributes.map { |col| "#{col}=#{BlocRecord::Utility.sql_strings(self.instance_varialble_get("@#{col}"))}"}.join(",")
+		fields = self.class.attributes.map { |col| "#{col} = #{BlocRecord::Utility.sql_strings(self.instance_varialble_get("@#{col}"))}" }.join(",")
 
 		self.class.connection.execute <<-SQL
 			UPDATE #{self.class.table}
@@ -32,7 +32,7 @@ module Persistence
 		def create(attrs)
 			attrs = BlocRecord::Utility.convert_keys(attrs)
 			attrs.delete "id"
-			vals = attributes.map { |key| BlocRecord::Utility.sql_strings(attrs[keys]) }
+			vals = attributes.map { |key| BlocRecord::Utility.sql_strings(attrs[key]) }
 
 			connection.execute <<-SQL 
 				INSERT INTO #{table} (#{attributes.join ","})

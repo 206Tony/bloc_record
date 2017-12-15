@@ -7,8 +7,8 @@ require 'bloc_record/connection'
 module BlocRecord 
 	class Base
 		include Persistence
-		extend Schema 
 		extend Selection
+		extend Schema 
 		extend Connection 
 
 		def initialize(options={})
