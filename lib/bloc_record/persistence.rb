@@ -17,7 +17,7 @@ module Persistence
 			return true
 		end
 
-		fields = self.class.attributes.map { |col| "#{col} = #{BlocRecord::Utility.sql_strings(self.instance_varialble_get("@#{col}"))}" }.join(",")
+		fields = self.class.attributes.map { |col| "#{col}=#{BlocRecord::Utility.sql_strings(self.instance_varialble_get("@#{col}"))}" }.join(",")
 
 		self.class.connection.execute <<-SQL
 			UPDATE #{self.class.table}
