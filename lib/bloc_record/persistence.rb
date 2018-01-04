@@ -67,11 +67,19 @@ module Persistence
 				UPDATE #{table}
 				SET #{updates_array * ","} #{where_clause}
 			SQL
+
 			true
 		end
 
-			def update_all(updates)
+		def update_all(updates)
 			update(nil, updates)
+		end
+
+		def method_missing(method, *args, &block)
+			if method.include? "update"
+				meth = method[method.index("_")+1..-1]
+			end
+			update_attribute(meth, arg[0])
 		end
 	end
 end
