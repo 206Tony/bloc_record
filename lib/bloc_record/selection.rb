@@ -1,15 +1,17 @@
 require 'sqlite3'
 
 module Selection 
+	
 	def find(*ids)
 		if ids.kind_of? Integer  
 			if ids.length == 1 && ids > 0
 				find_one(ids.first)
 			else
-				rows = connection.execute <<-SQL
+				rows = self.class.execute <<-SQL
 					SELECT #{columns.join ","} FROM #{table}
 					WHERE id IN (#{ids.join(",")});
 				SQL
+				
 				rows_to_array(rows)
 			end
 		else
@@ -23,6 +25,7 @@ module Selection
 				SELECT #{columns.join ","} FROM #{table}
 				WHERE id = #{id};
 			SQL
+			
 			init_object_from_row(row)
 		else
 			puts "Invalid id. Please enter a valid id."
@@ -34,35 +37,39 @@ module Selection
 			SELECT #{columns.join ","} FROM #{table}
 			WHERE #{attribute} = {BlocRecord::Utility.sql_strings(value)};
 		SQL
+		
 		init_object_from_row(row)
 	end
 
 	def find_each(options={})
-		row = connection.execute <<-SQL
+		row = self.class.execute <<-SQL
 			SELECT * FROM #{table}
 			ORDER BY #{table}
 			LIMIT #{options[:batch_size]};
 		SQL
+		
 		for row in rows_to_array(rows)
 			yield(row)
 		end
 	end
 
 	def find_in_batches(start, batch_size)
-		rows = connection.execute <<-SQL
+		rows = self.class.execute <<-SQL
 			SELECT #{colums.join ","} FROM #{table}
 			LIMIT #{start}, #{batch_size};
 		SQL
+		
 		yield(rows_to_array(rows))
 	end
 
 	def take(num=1)
 		if num > 1
-			rows = connection.execute <<-SQL
+			rows = self.class.execute <<-SQL
 				SELECT #{columns.join ","} FROM #{table}
 				ORDER BY random()
 				LIMIT #{num};
 			SQL
+			
 			rows_to_array(rows)
 		else
 			take_one
@@ -75,14 +82,17 @@ module Selection
 			ORDER BY random()
 			LIMIT 1;
 		SQL
+		
 		init_object_from_row(row)
 	end
 
 	def first
 		row = connection.get_first_row <<-SQL
 			SELECT #{columns.join ","} FROM #{table}
-			ORDER BY id ASC LIMIT 1;
+			ORDER BY id 
+			ASC LIMIT 1;
 		SQL
+		
 		init_object_from_row(row)
 	end
 
@@ -91,13 +101,15 @@ module Selection
 			SELECT #{columns.join ","} FROM #{table}
 			ORDER BY id DESC LIMIT 1;
 		SQL
+		
 		init_object_from_row(row)
 	end
 
 	def all
-		rows = connection.execute <<-SQL
+		rows = self.class.execute <<-SQL
 			SELECT #{columns.join ","} FROM #{table};
 		SQL
+		
 		rows_to_array(rows)
 	end
 
@@ -119,7 +131,8 @@ module Selection
 			SELECT #{columns.join ","} FROM #{table}
 			WHERE #{expression};
 		SQL
-		rows = connection.execute(sql, params)
+		
+		rows = self.class.execute(sql, params)
 		rows_to_array(rows)
 	end
 
@@ -136,40 +149,42 @@ module Selection
 			order = order_hash.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}"}.join(",")
 		end
 		
-		rows = connection.execute <<-SQL
+		rows = self.class.execute <<-SQL
 			SELECT * FROM #{table}
 			ORDER BY #{order};
 		SQL
+		
 		rows_to_array(rows)
 	end
 
 	def join(*args)
 		if args.count > 1 
 			joins = args.map { |arg| "INNER JOIN #{arg} ON #{arg}.#{table}_id = #{table}.id"}.join(" ")
-			rows = connection.execute <<-SQL
+			rows = self.class.execute <<-SQL
 				SELECT * FROM #{table} #{joins};
 			SQL
 		else
 			case args.first
 			when String 
-				rows = connection.execute <<-SQL
+				rows = self.class.execute <<-SQL
 					SELECT * FROM #{table} #{BlocRecord::Utility.sql_strings(args.first)};
 				SQL
 			when Symbol
-				rows = connection.execute <<-SQL
+				rows = self.class.execute <<-SQL
 					SELECT * FROM #{table}
 					INNER JOIN #{args.first} ON #{args.first}.#{table}_id = #{table}.id
 				SQL
 			when Hash 
 				key = args.first.keys.first
 				value = args.first[key]
-				rows = connection.execute <<-SQL
+				rows = self.class.execute <<-SQL
 					SELECT * FROM #{table}
 					INNER JOIN #{key} ON #{key}.#{table}.id = #{table}.id
 					INNER JOIN #{value} ON #{value}.#{key}_id = #{key}.id
 				SQL
 			end		
 		end
+		
 		rows_to_array(rows)
 	end
 
